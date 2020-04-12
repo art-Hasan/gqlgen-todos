@@ -5,25 +5,17 @@ package graph
 
 import (
 	"context"
-	"fmt"
-	"math/rand"
 
 	"github.com/art-Hasan/gqlgen-todos/graph/generated"
 	"github.com/art-Hasan/gqlgen-todos/graph/model"
 )
 
 func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
-	todo := &model.Todo{
-		Text:   input.Text,
-		ID:     fmt.Sprintf("T%d", rand.Int()),
-		UserID: input.UserID, // fix this line
-	}
-	r.todos = append(r.todos, todo)
-	return todo, nil
+	return nil, nil
 }
 
 func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
-	return r.todos, nil
+	return nil, nil
 }
 
 func (r *todoResolver) User(ctx context.Context, obj *model.Todo) (*model.User, error) {

@@ -1,8 +1,8 @@
 package graph
 
-//go:generate go run github.com/99designs/gqlgen
 import (
-	"github.com/art-Hasan/gqlgen-todos/graph/model"
+	"github.com/art-Hasan/gqlgen-todos/ent"
+	"github.com/art-Hasan/gqlgen-todos/graph/generated"
 )
 
 // This file will not be regenerated automatically.
@@ -10,5 +10,9 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	todos []*model.Todo
+	ent *ent.Client
+}
+
+func NewResolver(ent *ent.Client) generated.ResolverRoot {
+	return &Resolver{ent: ent}
 }
