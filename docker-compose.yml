@@ -1,0 +1,10 @@
+version: '3.3'
+
+services:
+  backend:
+    build:
+      dockerfile: Dockerfile
+      context: .
+      args:
+        GO_VERSION: 1.14.2
+    restart: always
