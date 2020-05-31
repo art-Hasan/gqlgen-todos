@@ -34,14 +34,14 @@ func (uu *UserUpdate) SetName(s string) *UserUpdate {
 	return uu
 }
 
-// AddTodoIDs adds the todo edge to Todo by ids.
+// AddTodoIDs adds the todos edge to Todo by ids.
 func (uu *UserUpdate) AddTodoIDs(ids ...int) *UserUpdate {
 	uu.mutation.AddTodoIDs(ids...)
 	return uu
 }
 
-// AddTodo adds the todo edges to Todo.
-func (uu *UserUpdate) AddTodo(t ...*Todo) *UserUpdate {
+// AddTodos adds the todos edges to Todo.
+func (uu *UserUpdate) AddTodos(t ...*Todo) *UserUpdate {
 	ids := make([]int, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
@@ -49,14 +49,14 @@ func (uu *UserUpdate) AddTodo(t ...*Todo) *UserUpdate {
 	return uu.AddTodoIDs(ids...)
 }
 
-// RemoveTodoIDs removes the todo edge to Todo by ids.
+// RemoveTodoIDs removes the todos edge to Todo by ids.
 func (uu *UserUpdate) RemoveTodoIDs(ids ...int) *UserUpdate {
 	uu.mutation.RemoveTodoIDs(ids...)
 	return uu
 }
 
-// RemoveTodo removes todo edges to Todo.
-func (uu *UserUpdate) RemoveTodo(t ...*Todo) *UserUpdate {
+// RemoveTodos removes todos edges to Todo.
+func (uu *UserUpdate) RemoveTodos(t ...*Todo) *UserUpdate {
 	ids := make([]int, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
@@ -145,12 +145,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldName,
 		})
 	}
-	if nodes := uu.mutation.RemovedTodoIDs(); len(nodes) > 0 {
+	if nodes := uu.mutation.RemovedTodosIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TodoTable,
-			Columns: []string{user.TodoColumn},
+			Table:   user.TodosTable,
+			Columns: []string{user.TodosColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -164,12 +164,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.TodoIDs(); len(nodes) > 0 {
+	if nodes := uu.mutation.TodosIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TodoTable,
-			Columns: []string{user.TodoColumn},
+			Table:   user.TodosTable,
+			Columns: []string{user.TodosColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -207,14 +207,14 @@ func (uuo *UserUpdateOne) SetName(s string) *UserUpdateOne {
 	return uuo
 }
 
-// AddTodoIDs adds the todo edge to Todo by ids.
+// AddTodoIDs adds the todos edge to Todo by ids.
 func (uuo *UserUpdateOne) AddTodoIDs(ids ...int) *UserUpdateOne {
 	uuo.mutation.AddTodoIDs(ids...)
 	return uuo
 }
 
-// AddTodo adds the todo edges to Todo.
-func (uuo *UserUpdateOne) AddTodo(t ...*Todo) *UserUpdateOne {
+// AddTodos adds the todos edges to Todo.
+func (uuo *UserUpdateOne) AddTodos(t ...*Todo) *UserUpdateOne {
 	ids := make([]int, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
@@ -222,14 +222,14 @@ func (uuo *UserUpdateOne) AddTodo(t ...*Todo) *UserUpdateOne {
 	return uuo.AddTodoIDs(ids...)
 }
 
-// RemoveTodoIDs removes the todo edge to Todo by ids.
+// RemoveTodoIDs removes the todos edge to Todo by ids.
 func (uuo *UserUpdateOne) RemoveTodoIDs(ids ...int) *UserUpdateOne {
 	uuo.mutation.RemoveTodoIDs(ids...)
 	return uuo
 }
 
-// RemoveTodo removes todo edges to Todo.
-func (uuo *UserUpdateOne) RemoveTodo(t ...*Todo) *UserUpdateOne {
+// RemoveTodos removes todos edges to Todo.
+func (uuo *UserUpdateOne) RemoveTodos(t ...*Todo) *UserUpdateOne {
 	ids := make([]int, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
@@ -316,12 +316,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 			Column: user.FieldName,
 		})
 	}
-	if nodes := uuo.mutation.RemovedTodoIDs(); len(nodes) > 0 {
+	if nodes := uuo.mutation.RemovedTodosIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TodoTable,
-			Columns: []string{user.TodoColumn},
+			Table:   user.TodosTable,
+			Columns: []string{user.TodosColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -335,12 +335,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.TodoIDs(); len(nodes) > 0 {
+	if nodes := uuo.mutation.TodosIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TodoTable,
-			Columns: []string{user.TodoColumn},
+			Table:   user.TodosTable,
+			Columns: []string{user.TodosColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

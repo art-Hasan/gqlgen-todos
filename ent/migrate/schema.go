@@ -15,7 +15,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "text", Type: field.TypeString, Size: 256},
 		{Name: "done", Type: field.TypeBool},
-		{Name: "user_todo", Type: field.TypeInt, Nullable: true},
+		{Name: "user_todos", Type: field.TypeInt, Nullable: true},
 	}
 	// TodosTable holds the schema information for the "todos" table.
 	TodosTable = &schema.Table{
@@ -24,7 +24,7 @@ var (
 		PrimaryKey: []*schema.Column{TodosColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:  "todos_users_todo",
+				Symbol:  "todos_users_todos",
 				Columns: []*schema.Column{TodosColumns[5]},
 
 				RefColumns: []*schema.Column{UsersColumns[0]},

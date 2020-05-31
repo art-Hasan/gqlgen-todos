@@ -37,6 +37,8 @@ type TodoMutation struct {
 	text          *string
 	done          *bool
 	clearedFields map[string]struct{}
+	user          *int
+	cleareduser   bool
 }
 
 var _ ent.Mutation = (*TodoMutation)(nil)
@@ -159,6 +161,45 @@ func (m *TodoMutation) Done() (r bool, exists bool) {
 // ResetDone reset all changes of the done field.
 func (m *TodoMutation) ResetDone() {
 	m.done = nil
+}
+
+// SetUserID sets the user edge to User by id.
+func (m *TodoMutation) SetUserID(id int) {
+	m.user = &id
+}
+
+// ClearUser clears the user edge to User.
+func (m *TodoMutation) ClearUser() {
+	m.cleareduser = true
+}
+
+// UserCleared returns if the edge user was cleared.
+func (m *TodoMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserID returns the user id in the mutation.
+func (m *TodoMutation) UserID() (id int, exists bool) {
+	if m.user != nil {
+		return *m.user, true
+	}
+	return
+}
+
+// UserIDs returns the user ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *TodoMutation) UserIDs() (ids []int) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser reset all changes of the user edge.
+func (m *TodoMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
 }
 
 // Op returns the operation name.
@@ -310,7 +351,10 @@ func (m *TodoMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *TodoMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.user != nil {
+		edges = append(edges, todo.EdgeUser)
+	}
 	return edges
 }
 
@@ -318,6 +362,10 @@ func (m *TodoMutation) AddedEdges() []string {
 // the given edge name.
 func (m *TodoMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case todo.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
@@ -325,7 +373,7 @@ func (m *TodoMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *TodoMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
 	return edges
 }
 
@@ -340,7 +388,10 @@ func (m *TodoMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *TodoMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.cleareduser {
+		edges = append(edges, todo.EdgeUser)
+	}
 	return edges
 }
 
@@ -348,6 +399,8 @@ func (m *TodoMutation) ClearedEdges() []string {
 // cleared in this mutation.
 func (m *TodoMutation) EdgeCleared(name string) bool {
 	switch name {
+	case todo.EdgeUser:
+		return m.cleareduser
 	}
 	return false
 }
@@ -355,6 +408,11 @@ func (m *TodoMutation) EdgeCleared(name string) bool {
 // ClearEdge clears the value for the given name. It returns an
 // error if the edge name is not defined in the schema.
 func (m *TodoMutation) ClearEdge(name string) error {
+	switch name {
+	case todo.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
 	return fmt.Errorf("unknown Todo unique edge %s", name)
 }
 
@@ -363,6 +421,9 @@ func (m *TodoMutation) ClearEdge(name string) error {
 // defined in the schema.
 func (m *TodoMutation) ResetEdge(name string) error {
 	switch name {
+	case todo.EdgeUser:
+		m.ResetUser()
+		return nil
 	}
 	return fmt.Errorf("unknown Todo edge %s", name)
 }
@@ -376,8 +437,8 @@ type UserMutation struct {
 	id            *int
 	name          *string
 	clearedFields map[string]struct{}
-	todo          map[int]struct{}
-	removedtodo   map[int]struct{}
+	todos         map[int]struct{}
+	removedtodos  map[int]struct{}
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -445,46 +506,46 @@ func (m *UserMutation) ResetName() {
 	m.name = nil
 }
 
-// AddTodoIDs adds the todo edge to Todo by ids.
+// AddTodoIDs adds the todos edge to Todo by ids.
 func (m *UserMutation) AddTodoIDs(ids ...int) {
-	if m.todo == nil {
-		m.todo = make(map[int]struct{})
+	if m.todos == nil {
+		m.todos = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.todo[ids[i]] = struct{}{}
+		m.todos[ids[i]] = struct{}{}
 	}
 }
 
-// RemoveTodoIDs removes the todo edge to Todo by ids.
+// RemoveTodoIDs removes the todos edge to Todo by ids.
 func (m *UserMutation) RemoveTodoIDs(ids ...int) {
-	if m.removedtodo == nil {
-		m.removedtodo = make(map[int]struct{})
+	if m.removedtodos == nil {
+		m.removedtodos = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.removedtodo[ids[i]] = struct{}{}
+		m.removedtodos[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedTodo returns the removed ids of todo.
-func (m *UserMutation) RemovedTodoIDs() (ids []int) {
-	for id := range m.removedtodo {
+// RemovedTodos returns the removed ids of todos.
+func (m *UserMutation) RemovedTodosIDs() (ids []int) {
+	for id := range m.removedtodos {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// TodoIDs returns the todo ids in the mutation.
-func (m *UserMutation) TodoIDs() (ids []int) {
-	for id := range m.todo {
+// TodosIDs returns the todos ids in the mutation.
+func (m *UserMutation) TodosIDs() (ids []int) {
+	for id := range m.todos {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetTodo reset all changes of the todo edge.
-func (m *UserMutation) ResetTodo() {
-	m.todo = nil
-	m.removedtodo = nil
+// ResetTodos reset all changes of the todos edge.
+func (m *UserMutation) ResetTodos() {
+	m.todos = nil
+	m.removedtodos = nil
 }
 
 // Op returns the operation name.
@@ -592,8 +653,8 @@ func (m *UserMutation) ResetField(name string) error {
 // mutation.
 func (m *UserMutation) AddedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.todo != nil {
-		edges = append(edges, user.EdgeTodo)
+	if m.todos != nil {
+		edges = append(edges, user.EdgeTodos)
 	}
 	return edges
 }
@@ -602,9 +663,9 @@ func (m *UserMutation) AddedEdges() []string {
 // the given edge name.
 func (m *UserMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case user.EdgeTodo:
-		ids := make([]ent.Value, 0, len(m.todo))
-		for id := range m.todo {
+	case user.EdgeTodos:
+		ids := make([]ent.Value, 0, len(m.todos))
+		for id := range m.todos {
 			ids = append(ids, id)
 		}
 		return ids
@@ -616,8 +677,8 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 // mutation.
 func (m *UserMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.removedtodo != nil {
-		edges = append(edges, user.EdgeTodo)
+	if m.removedtodos != nil {
+		edges = append(edges, user.EdgeTodos)
 	}
 	return edges
 }
@@ -626,9 +687,9 @@ func (m *UserMutation) RemovedEdges() []string {
 // the given edge name.
 func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case user.EdgeTodo:
-		ids := make([]ent.Value, 0, len(m.removedtodo))
-		for id := range m.removedtodo {
+	case user.EdgeTodos:
+		ids := make([]ent.Value, 0, len(m.removedtodos))
+		for id := range m.removedtodos {
 			ids = append(ids, id)
 		}
 		return ids
@@ -664,8 +725,8 @@ func (m *UserMutation) ClearEdge(name string) error {
 // defined in the schema.
 func (m *UserMutation) ResetEdge(name string) error {
 	switch name {
-	case user.EdgeTodo:
-		m.ResetTodo()
+	case user.EdgeTodos:
+		m.ResetTodos()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

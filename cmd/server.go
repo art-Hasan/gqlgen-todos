@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"strconv"
 
@@ -20,6 +21,10 @@ func main() {
 
 	service, err := Service()
 	if err != nil {
+		panic(err)
+	}
+
+	if err := service.Migrate(context.Background()); err != nil {
 		panic(err)
 	}
 

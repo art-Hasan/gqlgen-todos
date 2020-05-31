@@ -2,12 +2,37 @@
 
 package model
 
-type NewTodo struct {
-	Text   string `json:"text"`
-	UserID string `json:"userId"`
+import (
+	"github.com/art-Hasan/gqlgen-todos/ent"
+)
+
+type DeleteTodo struct {
+	ID int `json:"id"`
 }
 
-type User struct {
-	ID   string `json:"id"`
+type DeleteUser struct {
+	ID int `json:"id"`
+}
+
+type NewTodo struct {
+	Text   string `json:"text"`
+	UserID int    `json:"userId"`
+}
+
+type NewUser struct {
 	Name string `json:"name"`
+}
+
+type PageInfo struct {
+	Total int `json:"total"`
+}
+
+type TodosPage struct {
+	Page []*ent.Todo `json:"page"`
+	Info *PageInfo   `json:"info"`
+}
+
+type UsersPage struct {
+	Page []*ent.User `json:"page"`
+	Info *PageInfo   `json:"info"`
 }

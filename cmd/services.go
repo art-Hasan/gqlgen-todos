@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -43,6 +44,11 @@ func (s service) ListenAndServe() error {
 	return http.ListenAndServe(s.addr.Address(), s.router)
 }
 
+func (s service) Migrate(ctx context.Context) error {
+	log.Printf("start migrating simple schema")
+	return s.ent.Schema.Create(ctx)
+}
+
 func newService(ent *ent.Client, r *chi.Mux, addr Addr) service {
 	return service{ent: ent, router: r, addr: addr}
 }
@@ -78,7 +84,6 @@ func newRouter(gr generated.ResolverRoot) *chi.Mux {
 	router := chi.NewRouter()
 	router.Use(
 		middleware.RequestID,
-		middleware.RealIP,
 		middleware.Logger,
 		middleware.Recoverer,
 	)

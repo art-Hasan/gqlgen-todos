@@ -32,14 +32,14 @@ func (uc *UserCreate) SetID(i int) *UserCreate {
 	return uc
 }
 
-// AddTodoIDs adds the todo edge to Todo by ids.
+// AddTodoIDs adds the todos edge to Todo by ids.
 func (uc *UserCreate) AddTodoIDs(ids ...int) *UserCreate {
 	uc.mutation.AddTodoIDs(ids...)
 	return uc
 }
 
-// AddTodo adds the todo edges to Todo.
-func (uc *UserCreate) AddTodo(t ...*Todo) *UserCreate {
+// AddTodos adds the todos edges to Todo.
+func (uc *UserCreate) AddTodos(t ...*Todo) *UserCreate {
 	ids := make([]int, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
@@ -115,12 +115,12 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		})
 		u.Name = value
 	}
-	if nodes := uc.mutation.TodoIDs(); len(nodes) > 0 {
+	if nodes := uc.mutation.TodosIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TodoTable,
-			Columns: []string{user.TodoColumn},
+			Table:   user.TodosTable,
+			Columns: []string{user.TodosColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

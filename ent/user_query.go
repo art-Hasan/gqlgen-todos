@@ -26,7 +26,7 @@ type UserQuery struct {
 	unique     []string
 	predicates []predicate.User
 	// eager-loading edges.
-	withTodo *TodoQuery
+	withTodos *TodoQuery
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -55,13 +55,13 @@ func (uq *UserQuery) Order(o ...Order) *UserQuery {
 	return uq
 }
 
-// QueryTodo chains the current query on the todo edge.
-func (uq *UserQuery) QueryTodo() *TodoQuery {
+// QueryTodos chains the current query on the todos edge.
+func (uq *UserQuery) QueryTodos() *TodoQuery {
 	query := &TodoQuery{config: uq.config}
 	step := sqlgraph.NewStep(
 		sqlgraph.From(user.Table, user.FieldID, uq.sqlQuery()),
 		sqlgraph.To(todo.Table, todo.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, user.TodoTable, user.TodoColumn),
+		sqlgraph.Edge(sqlgraph.O2M, false, user.TodosTable, user.TodosColumn),
 	)
 	query.sql = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 	return query
@@ -236,14 +236,14 @@ func (uq *UserQuery) Clone() *UserQuery {
 	}
 }
 
-//  WithTodo tells the query-builder to eager-loads the nodes that are connected to
-// the "todo" edge. The optional arguments used to configure the query builder of the edge.
-func (uq *UserQuery) WithTodo(opts ...func(*TodoQuery)) *UserQuery {
+//  WithTodos tells the query-builder to eager-loads the nodes that are connected to
+// the "todos" edge. The optional arguments used to configure the query builder of the edge.
+func (uq *UserQuery) WithTodos(opts ...func(*TodoQuery)) *UserQuery {
 	query := &TodoQuery{config: uq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withTodo = query
+	uq.withTodos = query
 	return uq
 }
 
@@ -293,7 +293,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
 		loadedTypes = [1]bool{
-			uq.withTodo != nil,
+			uq.withTodos != nil,
 		}
 	)
 	_spec.ScanValues = func() []interface{} {
@@ -317,7 +317,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 		return nodes, nil
 	}
 
-	if query := uq.withTodo; query != nil {
+	if query := uq.withTodos; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
 		nodeids := make(map[int]*User)
 		for i := range nodes {
@@ -326,22 +326,22 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 		}
 		query.withFKs = true
 		query.Where(predicate.Todo(func(s *sql.Selector) {
-			s.Where(sql.InValues(user.TodoColumn, fks...))
+			s.Where(sql.InValues(user.TodosColumn, fks...))
 		}))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.user_todo
+			fk := n.user_todos
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "user_todo" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "user_todos" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "user_todo" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "user_todos" returned %v for node %v`, *fk, n.ID)
 			}
-			node.Edges.Todo = append(node.Edges.Todo, n)
+			node.Edges.Todos = append(node.Edges.Todos, n)
 		}
 	}
 

@@ -10,6 +10,7 @@ import (
 
 	"github.com/art-Hasan/gqlgen-todos/ent/predicate"
 	"github.com/art-Hasan/gqlgen-todos/ent/todo"
+	"github.com/art-Hasan/gqlgen-todos/ent/user"
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
@@ -23,7 +24,9 @@ type TodoQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Todo
-	withFKs    bool
+	// eager-loading edges.
+	withUser *UserQuery
+	withFKs  bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -50,6 +53,18 @@ func (tq *TodoQuery) Offset(offset int) *TodoQuery {
 func (tq *TodoQuery) Order(o ...Order) *TodoQuery {
 	tq.order = append(tq.order, o...)
 	return tq
+}
+
+// QueryUser chains the current query on the user edge.
+func (tq *TodoQuery) QueryUser() *UserQuery {
+	query := &UserQuery{config: tq.config}
+	step := sqlgraph.NewStep(
+		sqlgraph.From(todo.Table, todo.FieldID, tq.sqlQuery()),
+		sqlgraph.To(user.Table, user.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, todo.UserTable, todo.UserColumn),
+	)
+	query.sql = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+	return query
 }
 
 // First returns the first Todo entity in the query. Returns *NotFoundError when no todo was found.
@@ -221,6 +236,17 @@ func (tq *TodoQuery) Clone() *TodoQuery {
 	}
 }
 
+//  WithUser tells the query-builder to eager-loads the nodes that are connected to
+// the "user" edge. The optional arguments used to configure the query builder of the edge.
+func (tq *TodoQuery) WithUser(opts ...func(*UserQuery)) *TodoQuery {
+	query := &UserQuery{config: tq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	tq.withUser = query
+	return tq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -264,10 +290,16 @@ func (tq *TodoQuery) Select(field string, fields ...string) *TodoSelect {
 
 func (tq *TodoQuery) sqlAll(ctx context.Context) ([]*Todo, error) {
 	var (
-		nodes   = []*Todo{}
-		withFKs = tq.withFKs
-		_spec   = tq.querySpec()
+		nodes       = []*Todo{}
+		withFKs     = tq.withFKs
+		_spec       = tq.querySpec()
+		loadedTypes = [1]bool{
+			tq.withUser != nil,
+		}
 	)
+	if tq.withUser != nil {
+		withFKs = true
+	}
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, todo.ForeignKeys...)
 	}
@@ -285,6 +317,7 @@ func (tq *TodoQuery) sqlAll(ctx context.Context) ([]*Todo, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, tq.driver, _spec); err != nil {
@@ -293,6 +326,32 @@ func (tq *TodoQuery) sqlAll(ctx context.Context) ([]*Todo, error) {
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := tq.withUser; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Todo)
+		for i := range nodes {
+			if fk := nodes[i].user_todos; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(user.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_todos" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.User = n
+			}
+		}
+	}
+
 	return nodes, nil
 }
 

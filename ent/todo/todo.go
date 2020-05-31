@@ -16,8 +16,18 @@ const (
 	FieldText      = "text"       // FieldDone holds the string denoting the done vertex property in the database.
 	FieldDone      = "done"
 
+	// EdgeUser holds the string denoting the user edge name in mutations.
+	EdgeUser = "user"
+
 	// Table holds the table name of the todo in the database.
 	Table = "todos"
+	// UserTable is the table the holds the user relation/edge.
+	UserTable = "todos"
+	// UserInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	UserInverseTable = "users"
+	// UserColumn is the table column denoting the user relation/edge.
+	UserColumn = "user_todos"
 )
 
 // Columns holds all SQL columns for todo fields.
@@ -31,7 +41,7 @@ var Columns = []string{
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the Todo type.
 var ForeignKeys = []string{
-	"user_todo",
+	"user_todos",
 }
 
 var (

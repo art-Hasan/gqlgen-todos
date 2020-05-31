@@ -2,6 +2,30 @@
 #
 # https://gqlgen.com/getting-started/
 
+## Mutation ##
+
+type Mutation {
+  createTodo(input: NewTodo!): Todo!
+  createUser(input: NewUser!): User!
+  deleteTodo(input: DeleteTodo!): Todo
+  deleteUser(input: DeleteUser!): User
+}
+
+## Query ##
+
+type Query {
+  todos: TodosPage
+  users: UsersPage
+}
+
+## Types ##
+
+type PageInfo {
+  total: Int!
+}
+
+## TODO ##
+
 type Todo {
   id: ID!
   text: String!
@@ -9,20 +33,36 @@ type Todo {
   user: User!
 }
 
+input NewTodo {
+  text: String!
+  userId: Int!
+}
+
+input DeleteTodo {
+  id: Int!
+}
+
+type TodosPage {
+  page: [Todo!]!
+  info: PageInfo!
+}
+
+## USER ##
+
 type User {
   id: ID!
   name: String!
 }
 
-type Query {
-  todos: [Todo!]!
+input NewUser {
+  name: String!
 }
 
-input NewTodo {
-  text: String!
-  userId: String!
+input DeleteUser {
+  id: Int!
 }
 
-type Mutation {
-  createTodo(input: NewTodo!): Todo!
+type UsersPage {
+  page: [User!]!
+  info: PageInfo!
 }

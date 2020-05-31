@@ -183,6 +183,20 @@ func (c *TodoClient) GetX(ctx context.Context, id int) *Todo {
 	return t
 }
 
+// QueryUser queries the user edge of a Todo.
+func (c *TodoClient) QueryUser(t *Todo) *UserQuery {
+	query := &UserQuery{config: c.config}
+	id := t.ID
+	step := sqlgraph.NewStep(
+		sqlgraph.From(todo.Table, todo.FieldID, id),
+		sqlgraph.To(user.Table, user.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, todo.UserTable, todo.UserColumn),
+	)
+	query.sql = sqlgraph.Neighbors(t.driver.Dialect(), step)
+
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *TodoClient) Hooks() []Hook {
 	return c.hooks.Todo
@@ -266,14 +280,14 @@ func (c *UserClient) GetX(ctx context.Context, id int) *User {
 	return u
 }
 
-// QueryTodo queries the todo edge of a User.
-func (c *UserClient) QueryTodo(u *User) *TodoQuery {
+// QueryTodos queries the todos edge of a User.
+func (c *UserClient) QueryTodos(u *User) *TodoQuery {
 	query := &TodoQuery{config: c.config}
 	id := u.ID
 	step := sqlgraph.NewStep(
 		sqlgraph.From(user.Table, user.FieldID, id),
 		sqlgraph.To(todo.Table, todo.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, user.TodoTable, user.TodoColumn),
+		sqlgraph.Edge(sqlgraph.O2M, false, user.TodosTable, user.TodosColumn),
 	)
 	query.sql = sqlgraph.Neighbors(u.driver.Dialect(), step)
 

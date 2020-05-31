@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/art-Hasan/gqlgen-todos/ent/todo"
+	"github.com/art-Hasan/gqlgen-todos/ent/user"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
 )
@@ -72,6 +73,25 @@ func (tc *TodoCreate) SetNillableDone(b *bool) *TodoCreate {
 func (tc *TodoCreate) SetID(i int) *TodoCreate {
 	tc.mutation.SetID(i)
 	return tc
+}
+
+// SetUserID sets the user edge to User by id.
+func (tc *TodoCreate) SetUserID(id int) *TodoCreate {
+	tc.mutation.SetUserID(id)
+	return tc
+}
+
+// SetNillableUserID sets the user edge to User by id if the given value is not nil.
+func (tc *TodoCreate) SetNillableUserID(id *int) *TodoCreate {
+	if id != nil {
+		tc = tc.SetUserID(*id)
+	}
+	return tc
+}
+
+// SetUser sets the user edge to User.
+func (tc *TodoCreate) SetUser(u *User) *TodoCreate {
+	return tc.SetUserID(u.ID)
 }
 
 // Save creates the Todo in the database.
@@ -177,6 +197,25 @@ func (tc *TodoCreate) sqlSave(ctx context.Context) (*Todo, error) {
 			Column: todo.FieldDone,
 		})
 		t.Done = value
+	}
+	if nodes := tc.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   todo.UserTable,
+			Columns: []string{todo.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if err := sqlgraph.CreateNode(ctx, tc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {

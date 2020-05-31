@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/art-Hasan/gqlgen-todos/ent/todo"
+	"github.com/art-Hasan/gqlgen-todos/ent/user"
 	"github.com/facebookincubator/ent/dialect/sql"
 )
 
@@ -23,8 +24,34 @@ type Todo struct {
 	// Text holds the value of the "text" field.
 	Text string `json:"text,omitempty"`
 	// Done holds the value of the "done" field.
-	Done      bool `json:"done,omitempty"`
-	user_todo *int
+	Done bool `json:"done,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the TodoQuery when eager-loading is set.
+	Edges      TodoEdges `json:"edges"`
+	user_todos *int
+}
+
+// TodoEdges holds the relations/edges for other nodes in the graph.
+type TodoEdges struct {
+	// User holds the value of the user edge.
+	User *User
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// UserOrErr returns the User value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e TodoEdges) UserOrErr() (*User, error) {
+	if e.loadedTypes[0] {
+		if e.User == nil {
+			// The edge user was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.User, nil
+	}
+	return nil, &NotLoadedError{edge: "user"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -41,7 +68,7 @@ func (*Todo) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Todo) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // user_todo
+		&sql.NullInt64{}, // user_todos
 	}
 }
 
@@ -80,13 +107,18 @@ func (t *Todo) assignValues(values ...interface{}) error {
 	values = values[4:]
 	if len(values) == len(todo.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field user_todo", value)
+			return fmt.Errorf("unexpected type %T for edge-field user_todos", value)
 		} else if value.Valid {
-			t.user_todo = new(int)
-			*t.user_todo = int(value.Int64)
+			t.user_todos = new(int)
+			*t.user_todos = int(value.Int64)
 		}
 	}
 	return nil
+}
+
+// QueryUser queries the user edge of the Todo.
+func (t *Todo) QueryUser() *UserQuery {
+	return (&TodoClient{config: t.config}).QueryUser(t)
 }
 
 // Update returns a builder for updating this Todo.
