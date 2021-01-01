@@ -1,8 +1,8 @@
-#gqlgen-todos
+# gqlgen-todos
 
 Backend for todo's using graphql
 
-###Resources
+### Resources
 
 * [GraphQL](https://gqlgen.com/getting-started/) generator
   * See `ent/schema` for definitions
@@ -11,9 +11,10 @@ Backend for todo's using graphql
 * [Wire](https://github.com/google/wire) dependency management
   * See `cmd/wire_gen.go`
 
-###Examples
+### Examples
 
-```graphql
+```
+graphql
 mutation createTodo {
   createTodo(input:{text:"t", userId:2}) {
     user {
